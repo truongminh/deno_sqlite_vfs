@@ -1,6 +1,9 @@
 // Copyright 2021 Roy T. Hashimoto. All Rights Reserved.
 import * as VFS from './sqlite/VFS.ts';
 
+
+const trace = (...args: any[]) => {};
+
 // Memory filesystem. Although this is mainly provided as an example
 // for new VFS classes, it seems to be faster than the default filesystem.
 export class MemoryVFS extends VFS.Base {
@@ -23,7 +26,7 @@ export class MemoryVFS extends VFS.Base {
   }
 
   xOpen(name: string, fileId: number, flags: number, pOutFlags: DataView) {
-    console.log('xOpen', name, fileId);
+    trace('xOpen', name, fileId);
     // Generate a random name if requested.
     name = name || Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36);
     let file = this.mapNameToFile.get(name);
@@ -49,7 +52,7 @@ export class MemoryVFS extends VFS.Base {
   }
 
   xClose(fileId: number) {
-    console.log('xClose', fileId);
+    trace('xClose', fileId);
     const file = this.mapIdToFile.get(fileId);
     this.mapIdToFile.delete(fileId);
 
@@ -60,7 +63,7 @@ export class MemoryVFS extends VFS.Base {
   }
 
   xRead(fileId: number, pData: Uint8Array, iOffset: number) {
-    console.log('xRead', fileId, pData.byteLength, iOffset);
+    trace('xRead', fileId, pData.byteLength, iOffset);
     const file = this.mapIdToFile.get(fileId);
 
     // Clip the requested read to the file boundary.
@@ -74,7 +77,7 @@ export class MemoryVFS extends VFS.Base {
 
     if (nBytes < pData.byteLength) {
       // Zero unused area of read buffer.
-      console.log('>> xRead', fileId, 'short read');
+      trace('>> xRead', fileId, 'short read');
       pData.fill(0, nBytes);
       return VFS.SQLITE_IOERR_SHORT_READ;
     }
@@ -98,31 +101,31 @@ export class MemoryVFS extends VFS.Base {
   }
 
   xTruncate(fileId: number, iSize: number) {
-    console.log('xTruncate', fileId);
+    trace('xTruncate', fileId);
     const file = this.mapIdToFile.get(fileId);
 
     // For simplicity we don't make the ArrayBuffer smaller.
     file.size = Math.min(file.size, iSize);
     return VFS.SQLITE_OK;
   }
-  
+
   xFileSize(fileId: number, pSize64: DataView) {
-    console.log('xFileSize', fileId, pSize64);
+    trace('xFileSize', fileId, pSize64);
     const file = this.mapIdToFile.get(fileId);
 
     pSize64.setBigInt64(0, BigInt(file.size), true);
-    console.log('>> xFileSize', fileId, pSize64, file.size);
+    trace('>> xFileSize', fileId, pSize64, file.size);
     return VFS.SQLITE_OK;
   }
 
   xDelete(name: string, syncDir: number) {
-    console.log('xDelete', name, syncDir);
+    trace('xDelete', name, syncDir);
     this.mapNameToFile.delete(name);
     return VFS.SQLITE_OK;
   }
 
   xAccess(name: string, flags: number, pResOut: DataView) {
-    console.log('xAccess', name, flags);
+    trace('xAccess', name, flags);
     const file = this.mapNameToFile.get(name);
     pResOut.setInt32(0, file ? 1 : 0, true);
     return VFS.SQLITE_OK;

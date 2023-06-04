@@ -1,7 +1,7 @@
 import * as sqlite from './sqlite/index.ts';
 
-import { MemoryVFS } from './MemoryVFS.ts';
-import { FileVFS } from './FileVFS.ts';
+import { MemoryVFS } from './memory_vfs.ts';
+import { FileVFS } from './file_vfs.ts';
 
 sqlite.RegisterVFS(new MemoryVFS());
 sqlite.RegisterVFS(new FileVFS());

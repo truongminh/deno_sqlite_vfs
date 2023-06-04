@@ -519,7 +519,7 @@ export function Factory(Module) {
     const f = Module.cwrap(fname, ...decl('nnnnn:n'), { async });
     return async function(db, sql) {
       const result = await f(db, sql, -1, tmpPtr[0], tmpPtr[1]);
-      console.log('>>>>>>> prepare_v2', db, sql, result);
+      // console.log('>>>>>>> prepare_v2', db, sql, result);
       check(fname, result, db);
 
       const stmt = Module.getValue(tmpPtr[0], '*');
