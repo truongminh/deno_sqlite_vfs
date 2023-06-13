@@ -10,11 +10,11 @@ export class Base {
     return VFS.SQLITE_IOERR;
   }
 
-  xRead(fileId: number, pData: Uint8Array, iOffset: number) {
+  async xRead(fileId: number, pData: Uint8Array, iOffset: number) {
     return VFS.SQLITE_IOERR;
   }
 
-  xWrite(fileId: number, pData: Uint8Array, iOffset: number) {
+  async xWrite(fileId: number, pData: Uint8Array, iOffset: number) {
     return VFS.SQLITE_IOERR;
   }
 

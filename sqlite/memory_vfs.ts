@@ -1,5 +1,5 @@
 // Copyright 2021 Roy T. Hashimoto. All Rights Reserved.
-import * as VFS from './sqlite/VFS.ts';
+import * as VFS from '../sqlite/VFS.ts';
 
 
 const trace = (...args: any[]) => {};

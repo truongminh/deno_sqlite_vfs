@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
-import * as sqlite from './sqlite/index.ts';
+import * as sqlite from '../sqlite/index.ts';
 import { MemoryVFS } from './memory_vfs.ts';
 
 Deno.test("SQLite Memory VFS", { permissions: { read: true } }, async (t) => {

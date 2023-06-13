@@ -1,5 +1,5 @@
 // Copyright 2021 Roy T. Hashimoto. All Rights Reserved.
-import * as VFS from './sqlite/VFS.ts';
+import * as VFS from '../sqlite/VFS.ts';
 
 // Memory filesystem. Although this is mainly provided as an example
 // for new VFS classes, it seems to be faster than the default filesystem.
@@ -34,9 +34,9 @@ export class FileVFS extends VFS.Base {
     // Generate a random name if requested.
     console.log('xOpen', name, fileId);
     if (!this.mapIdToFile.has(fileId)) {
-      const file = Deno.openSync(name, { 
+      const file = Deno.openSync(name, {
         read: true, write: true, create: true,
-       });
+      });
       this.mapIdToFile.set(fileId, file);
     }
     pOutFlags.setInt32(0, flags, true);
@@ -59,27 +59,31 @@ export class FileVFS extends VFS.Base {
   }
 
   xRead(fileId: number, pData: Uint8Array, iOffset: number) {
-    console.log('xRead', fileId, pData.byteLength, iOffset);
-    const file = this.mustGetFile(fileId);
-    const buffer = new Uint8Array(pData.byteLength);
-    file.seekSync(iOffset, Deno.SeekMode.Start);
-    const nBytesRead = file.readSync(buffer) || 0;
-    if (nBytesRead < pData.byteLength) {
-      pData.fill(0, nBytesRead, pData.byteLength);
-      console.log('>> xRead', fileId, 'short read');
-      return VFS.SQLITE_IOERR_SHORT_READ;
-    }
-    pData.set(buffer);
-    return VFS.SQLITE_OK;
+    return this.handleAsync(async () => {
+      console.log('xRead', fileId, pData.byteLength, iOffset);
+      const file = this.mustGetFile(fileId);
+      const buffer = new Uint8Array(pData.byteLength);
+      file.seekSync(iOffset, Deno.SeekMode.Start);
+      const nBytesRead = await file.read(buffer) || 0;
+      if (nBytesRead < pData.byteLength) {
+        pData.fill(0, nBytesRead, pData.byteLength);
+        console.log('>> xRead', fileId, 'short read');
+        return VFS.SQLITE_IOERR_SHORT_READ;
+      }
+      pData.set(buffer);
+      return VFS.SQLITE_OK;
+    });
   }
 
   xWrite(fileId: number, pData: Uint8Array, iOffset: number) {
-    console.log('xWrite', fileId, pData.byteLength, iOffset);
-    const file = this.mustGetFile(fileId);
-    file.seekSync(iOffset, Deno.SeekMode.Start);
-    const nwritten = file.writeSync(pData.slice());
-    console.log('>> xWrite', fileId, nwritten);
-    return VFS.SQLITE_OK;
+    return this.handleAsync(async () => {
+      console.log('xWrite', fileId, pData.byteLength, iOffset);
+      const file = this.mustGetFile(fileId);
+      file.seekSync(iOffset, Deno.SeekMode.Start);
+      const nwritten = await file.write(pData.slice());
+      console.log('>> xWrite', fileId, nwritten);
+      return VFS.SQLITE_OK;
+    });
   }
 
   xTruncate(fileId: number, iSize: number) {

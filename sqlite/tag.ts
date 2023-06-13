@@ -1,17 +1,10 @@
 import * as SQLite from './sqlite-api.js';
 import { SQLiteCompatibleType, SQLiteAPI } from './interface.ts';
-import { Status } from 'https://deno.land/x/oak@v11.1.0/deps.ts';
 
 export interface SQLiteResults {
   columns: string[];
   rows: SQLiteCompatibleType[][];
 }
-
-/**
- * @typedef SQLiteResults
- * @property {string[]} columns
- * @property {SQLiteCompatibleType[][]} rows
- */
 
 /**
  * Build a query function for a database.
