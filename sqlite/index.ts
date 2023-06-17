@@ -1,12 +1,10 @@
-import SQLiteESMFactory from './wa-sqlite.mjs';
-import SQLiteAsyncESMFactory from './wa-sqlite-async.mjs';
+import SQLiteAsyncESMFactory from './16k/wa-sqlite-async.mjs';
 
 import * as SQLite from './sqlite-api.js';
 import { Base } from './VFS.ts';
 import { createTag, SQLiteResults } from './tag.ts';
 import { SQLiteCompatibleType } from './interface.ts';
 import { MemoryVFS } from './memory_vfs.ts';
-import { MemoryAsyncVFS } from './memory_async_vfs.js';
 
 const SQLiteModule = await SQLiteAsyncESMFactory();
 const sqlite3 = SQLite.Factory(SQLiteModule);
@@ -34,4 +32,4 @@ export async function Close(db: number) {
     await sqlite3.close(db);
 }
 
-RegisterVFS(new MemoryAsyncVFS() as any);
+RegisterVFS(new MemoryVFS() as any);

@@ -26,7 +26,7 @@ export class Base {
     return VFS.SQLITE_OK;
   }
 
-  xFileSize(fileId: number, pSize64: DataView) {
+  async xFileSize(fileId: number, pSize64: DataView) {
     return VFS.SQLITE_IOERR;
   }
 

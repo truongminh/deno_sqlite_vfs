@@ -33,11 +33,11 @@ export class TemporalDB {
     async Add(rows: number[][]) {
         const colstr = this.columns.join(',');
         const rowstr = rows.map(row => `(${row.join(',')})`).join(',');
-        await this.sql`INSERT INTO data(${colstr}) VALUES ${rowstr}`;
+        await this.sql`INSERT OR IGNORE INTO data(${colstr}) VALUES ${rowstr}`;
     }
 
     async Range(from: number, to: number) {
-        const [{ columns, rows }] = await this.sql`SELECT ts, wat FROM data`;
+        const [{ columns, rows }] = await this.sql`SELECT * FROM data`;
         return { columns, rows };
     }
 

@@ -11,6 +11,8 @@ export class FileVFS extends VFS.Base {
 
   // Map of open files, keyed by id (sqlite3_file pointer).
   mapIdToFile = new Map<number, Deno.FsFile>();
+  prefix = `${Math.random().toFixed(6)}.db`;
+  localOnly = new Set();
 
   constructor() {
     super();
@@ -30,14 +32,25 @@ export class FileVFS extends VFS.Base {
     }
   }
 
+  private correctName(name: string) {
+    if (name.includes('wal') || name.includes('journal')) {
+      return `${name}.${this.prefix}`;
+    }
+    return name;
+  }
+
   xOpen(name: string, fileId: number, flags: number, pOutFlags: DataView) {
     // Generate a random name if requested.
+    name = this.correctName(name);
     console.log('xOpen', name, fileId);
     if (!this.mapIdToFile.has(fileId)) {
       const file = Deno.openSync(name, {
         read: true, write: true, create: true,
       });
       this.mapIdToFile.set(fileId, file);
+    }
+    if (name.includes('wal') || name.includes('journal')) {
+      this.localOnly.add(fileId);
     }
     pOutFlags.setInt32(0, flags, true);
     return VFS.SQLITE_OK;
@@ -78,6 +91,14 @@ export class FileVFS extends VFS.Base {
   xWrite(fileId: number, pData: Uint8Array, iOffset: number) {
     return this.handleAsync(async () => {
       console.log('xWrite', fileId, pData.byteLength, iOffset);
+      // if (!this.localOnly.has(fileId)) {
+      //   const a = Math.random();
+      //   if (a < 0.1) {
+      //     // write failed
+      //     console.log('xWrite', fileId, "failed");
+      //     return VFS.SQLITE_IOERR_WRITE;
+      //   }
+      // }
       const file = this.mustGetFile(fileId);
       file.seekSync(iOffset, Deno.SeekMode.Start);
       const nwritten = await file.write(pData.slice());
@@ -93,7 +114,7 @@ export class FileVFS extends VFS.Base {
     return VFS.SQLITE_OK;
   }
 
-  xFileSize(fileId: number, pSize64: DataView) {
+  async xFileSize(fileId: number, pSize64: DataView) {
     console.log('xFileSize', fileId, pSize64);
     const file = this.mustGetFile(fileId);
     const size = file.statSync().size;
@@ -103,6 +124,7 @@ export class FileVFS extends VFS.Base {
   }
 
   xDelete(name: string, syncDir: number) {
+    name = this.correctName(name);
     console.log('xDelete', name, syncDir);
     Deno.removeSync(name);
     const fileId = this.mapNameToId.get(name);
@@ -114,6 +136,7 @@ export class FileVFS extends VFS.Base {
   }
 
   xAccess(name: string, flags: number, pResOut: DataView) {
+    name = this.correctName(name);
     console.log('xAccess', name, flags);
     const fileId = this.mapNameToId.get(name);
     pResOut.setInt32(0, fileId ? 1 : 0, true);

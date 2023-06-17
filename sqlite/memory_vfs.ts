@@ -62,7 +62,7 @@ export class MemoryVFS extends VFS.Base {
     return VFS.SQLITE_OK;
   }
 
-  xRead(fileId: number, pData: Uint8Array, iOffset: number) {
+  async xRead(fileId: number, pData: Uint8Array, iOffset: number) {
     trace('xRead', fileId, pData.byteLength, iOffset);
     const file = this.mapIdToFile.get(fileId);
 
@@ -84,7 +84,7 @@ export class MemoryVFS extends VFS.Base {
     return VFS.SQLITE_OK;
   }
 
-  xWrite(fileId: number, pData: Uint8Array, iOffset: number) {
+  async xWrite(fileId: number, pData: Uint8Array, iOffset: number) {
     const file = this.mapIdToFile.get(fileId);
     if (iOffset + pData.byteLength > file.data.byteLength) {
       // Resize the ArrayBuffer to hold more data.
@@ -109,7 +109,7 @@ export class MemoryVFS extends VFS.Base {
     return VFS.SQLITE_OK;
   }
 
-  xFileSize(fileId: number, pSize64: DataView) {
+  async xFileSize(fileId: number, pSize64: DataView) {
     trace('xFileSize', fileId, pSize64);
     const file = this.mapIdToFile.get(fileId);
 
